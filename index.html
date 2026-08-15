@@ -28,64 +28,34 @@ html, body {
     box-shadow: 0 0 10px rgba(0,0,0,0.2);
 }
 
-/* =========================
-   CUSTOM MARKER
-========================= */
-
-.custom-marker {
-    background: transparent;
-    border: none;
-}
-
-.marker-cpe,
-.marker-site {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    border: 3px solid white;
-    box-shadow: 0 1px 5px rgba(0,0,0,0.5);
-}
-
-.marker-cpe {
-    background: red;
-}
-
-.marker-site {
-    background: green;
-}
-
-
-/* =========================
-   LABEL
-========================= */
-
-.label-cpe,
-.label-site {
+/* Label CPE dan SITE */
+.cpe-label {
     background: white;
-    border: none;
-    border-radius: 4px;
-    padding: 3px 7px;
+    border: 1px solid red;
+    color: red;
     font-weight: bold;
     font-size: 12px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    padding: 2px 6px;
+    border-radius: 4px;
 }
 
-.label-cpe {
-    color: red;
-}
-
-.label-site {
+.site-label {
+    background: white;
+    border: 1px solid green;
     color: green;
+    font-weight: bold;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 4px;
 }
 
-
-/* Hilangkan segitiga bawaan tooltip */
-.leaflet-tooltip.label-cpe::before,
-.leaflet-tooltip.label-site::before {
-    display: none;
+/* Hilangkan ekor tooltip */
+.cpe-label::before,
+.site-label::before {
+    display: none !important;
 }
-
 </style>
+
 </head>
 
 <body>
@@ -102,6 +72,10 @@ html, body {
 
 <script>
 
+// ===============================
+// GET COORDINATE FROM URL
+// ===============================
+
 const p = new URLSearchParams(window.location.search);
 
 const clat = parseFloat(p.get("clat") || -7.0489684);
@@ -114,103 +88,90 @@ const cpe = [clat, clon];
 const site = [slat, slon];
 
 
-// =========================
+// ===============================
 // MAP
-// =========================
+// ===============================
 
-const map = L.map('map');
+const map = L.map("map");
 
 L.tileLayer(
-    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
         maxZoom: 19,
-        attribution: '&copy; OpenStreetMap contributors'
+        attribution: "&copy; OpenStreetMap contributors"
     }
 ).addTo(map);
 
 
-// =========================
-// CUSTOM ICON
-// =========================
+// ===============================
+// CPE - RED
+// ===============================
 
-const cpeIcon = L.divIcon({
-    className: 'custom-marker',
-    html: '<div class="marker-cpe"></div>',
-    iconSize: [22, 22],
-    iconAnchor: [11, 11]
-});
-
-const siteIcon = L.divIcon({
-    className: 'custom-marker',
-    html: '<div class="marker-site"></div>',
-    iconSize: [22, 22],
-    iconAnchor: [11, 11]
-});
-
-
-// =========================
-// CPE
-// =========================
-
-L.marker(cpe, {
-    icon: cpeIcon
+L.circleMarker(cpe, {
+    radius: 9,
+    color: "white",
+    weight: 3,
+    fillColor: "red",
+    fillOpacity: 1
 })
 .addTo(map)
-.bindTooltip('CPE', {
+.bindTooltip("CPE", {
     permanent: true,
-    direction: 'right',
-    offset: [12, 0],
-    className: 'label-cpe'
-})
-.bindPopup('CPE');
+    direction: "right",
+    offset: [10, 0],
+    className: "cpe-label"
+});
 
 
-// =========================
-// SITE
-// =========================
+// ===============================
+// SITE - GREEN
+// ===============================
 
-L.marker(site, {
-    icon: siteIcon
+L.circleMarker(site, {
+    radius: 9,
+    color: "white",
+    weight: 3,
+    fillColor: "green",
+    fillOpacity: 1
 })
 .addTo(map)
-.bindTooltip('SITE', {
+.bindTooltip("SITE", {
     permanent: true,
-    direction: 'right',
-    offset: [12, 0],
-    className: 'label-site'
-})
-.bindPopup('SITE');
+    direction: "right",
+    offset: [10, 0],
+    className: "site-label"
+});
 
 
-// =========================
+// ===============================
 // LINE CPE → SITE
-// =========================
+// ===============================
 
 L.polyline(
     [cpe, site],
     {
-        color: 'red',
+        color: "red",
         weight: 3
     }
 ).addTo(map);
 
 
-// =========================
+// ===============================
 // FIT MAP
-// =========================
+// ===============================
 
 map.fitBounds(
     [cpe, site],
     {
-        padding: [50, 50],
+        padding: [80, 80],
         maxZoom: 18
     }
 );
 
 
-// =========================
+// ===============================
 // DISTANCE
-// =========================
+// ===============================
 
 function distance(lat1, lon1, lat2, lon2) {
 
@@ -235,9 +196,9 @@ function distance(lat1, lon1, lat2, lon2) {
 }
 
 
-// =========================
+// ===============================
 // BEARING
-// =========================
+// ===============================
 
 function bearing(lat1, lon1, lat2, lon2) {
 
@@ -263,9 +224,9 @@ function bearing(lat1, lon1, lat2, lon2) {
 }
 
 
-// =========================
+// ===============================
 // CALCULATE
-// =========================
+// ===============================
 
 const km =
     distance(clat, clon, slat, slon);
@@ -274,9 +235,9 @@ const brg =
     bearing(clat, clon, slat, slon);
 
 
-// =========================
-// DISPLAY INFO
-// =========================
+// ===============================
+// DISPLAY
+// ===============================
 
 document.getElementById("distance").innerHTML =
     "Distance: " + km.toFixed(3) + " km";
