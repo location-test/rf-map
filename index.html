@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <title>RF Map</title>
 
-https://unpkg.com/leaflet/dist/leaflet.css"/>
+<link rel="stylesheet"let/dist/leaflet.css
 
 <style>
 html,body{
@@ -38,21 +38,21 @@ html,body{
 
 <div id="map"></div>
 
-https://unpkg.com/leaflet/dist/leaflet.js
+<script src="https://flet/dist/leaflet.js
 
 <script>
 
 const p = new URLSearchParams(window.location.search);
 
-const clat = parseFloat(p.get("clat"));
-const clon = parseFloat(p.get("clon"));
-const slat = parseFloat(p.get("slat"));
-const slon = parseFloat(p.get("slon"));
-
-const map = L.map('map');
+const clat = parseFloat(p.get("clat") || -7.0489684);
+const clon = parseFloat(p.get("clon") || 110.42617);
+const slat = parseFloat(p.get("slat") || -7.05159);
+const slon = parseFloat(p.get("slon") || 110.42708);
 
 const cpe = [clat, clon];
 const site = [slat, slon];
+
+const map = L.map('map');
 
 L.tileLayer(
 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -61,13 +61,8 @@ maxZoom:19
 }
 ).addTo(map);
 
-L.marker(cpe)
-.addTo(map)
-.bindPopup('CPE');
-
-L.marker(site)
-.addTo(map)
-.bindPopup('SITE');
+L.marker(cpe).addTo(map).bindPopup('CPE');
+L.marker(site).addTo(map).bindPopup('SITE');
 
 L.polyline(
 [cpe, site],
@@ -116,10 +111,10 @@ const km = distance(clat,clon,slat,slon);
 const brg = bearing(clat,clon,slat,slon);
 
 document.getElementById("distance").innerHTML =
-"Distance : "+km.toFixed(3)+" km";
+"Distance: "+km.toFixed(3)+" km";
 
 document.getElementById("bearing").innerHTML =
-"Bearing : "+brg.toFixed(1)+"°";
+"Bearing: "+brg.toFixed(1)+"°";
 
 </script>
 
