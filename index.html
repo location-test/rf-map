@@ -27,6 +27,64 @@ html, body {
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0,0,0,0.2);
 }
+
+/* =========================
+   CUSTOM MARKER
+========================= */
+
+.custom-marker {
+    background: transparent;
+    border: none;
+}
+
+.marker-cpe,
+.marker-site {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.5);
+}
+
+.marker-cpe {
+    background: red;
+}
+
+.marker-site {
+    background: green;
+}
+
+
+/* =========================
+   LABEL
+========================= */
+
+.label-cpe,
+.label-site {
+    background: white;
+    border: none;
+    border-radius: 4px;
+    padding: 3px 7px;
+    font-weight: bold;
+    font-size: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+.label-cpe {
+    color: red;
+}
+
+.label-site {
+    color: green;
+}
+
+
+/* Hilangkan segitiga bawaan tooltip */
+.leaflet-tooltip.label-cpe::before,
+.leaflet-tooltip.label-site::before {
+    display: none;
+}
+
 </style>
 </head>
 
@@ -55,22 +113,78 @@ const slon = parseFloat(p.get("slon") || 110.42708);
 const cpe = [clat, clon];
 const site = [slat, slon];
 
+
+// =========================
+// MAP
+// =========================
+
 const map = L.map('map');
 
 L.tileLayer(
     'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
     {
-        maxZoom: 19
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
     }
 ).addTo(map);
 
-L.marker(cpe)
-    .addTo(map)
-    .bindPopup('CPE');
 
-L.marker(site)
-    .addTo(map)
-    .bindPopup('SITE');
+// =========================
+// CUSTOM ICON
+// =========================
+
+const cpeIcon = L.divIcon({
+    className: 'custom-marker',
+    html: '<div class="marker-cpe"></div>',
+    iconSize: [22, 22],
+    iconAnchor: [11, 11]
+});
+
+const siteIcon = L.divIcon({
+    className: 'custom-marker',
+    html: '<div class="marker-site"></div>',
+    iconSize: [22, 22],
+    iconAnchor: [11, 11]
+});
+
+
+// =========================
+// CPE
+// =========================
+
+L.marker(cpe, {
+    icon: cpeIcon
+})
+.addTo(map)
+.bindTooltip('CPE', {
+    permanent: true,
+    direction: 'right',
+    offset: [12, 0],
+    className: 'label-cpe'
+})
+.bindPopup('CPE');
+
+
+// =========================
+// SITE
+// =========================
+
+L.marker(site, {
+    icon: siteIcon
+})
+.addTo(map)
+.bindTooltip('SITE', {
+    permanent: true,
+    direction: 'right',
+    offset: [12, 0],
+    className: 'label-site'
+})
+.bindPopup('SITE');
+
+
+// =========================
+// LINE CPE → SITE
+// =========================
 
 L.polyline(
     [cpe, site],
@@ -80,14 +194,33 @@ L.polyline(
     }
 ).addTo(map);
 
-map.fitBounds([cpe, site]);
+
+// =========================
+// FIT MAP
+// =========================
+
+map.fitBounds(
+    [cpe, site],
+    {
+        padding: [50, 50],
+        maxZoom: 18
+    }
+);
+
+
+// =========================
+// DISTANCE
+// =========================
 
 function distance(lat1, lon1, lat2, lon2) {
 
     const R = 6371;
 
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const dLat =
+        (lat2 - lat1) * Math.PI / 180;
+
+    const dLon =
+        (lon2 - lon1) * Math.PI / 180;
 
     const a =
         Math.sin(dLat / 2) ** 2 +
@@ -101,10 +234,17 @@ function distance(lat1, lon1, lat2, lon2) {
     );
 }
 
+
+// =========================
+// BEARING
+// =========================
+
 function bearing(lat1, lon1, lat2, lon2) {
 
     const y =
-        Math.sin((lon2 - lon1) * Math.PI / 180) *
+        Math.sin(
+            (lon2 - lon1) * Math.PI / 180
+        ) *
         Math.cos(lat2 * Math.PI / 180);
 
     const x =
@@ -113,15 +253,30 @@ function bearing(lat1, lon1, lat2, lon2) {
         -
         Math.sin(lat1 * Math.PI / 180) *
         Math.cos(lat2 * Math.PI / 180) *
-        Math.cos((lon2 - lon1) * Math.PI / 180);
+        Math.cos(
+            (lon2 - lon1) * Math.PI / 180
+        );
 
     return (
         Math.atan2(y, x) * 180 / Math.PI + 360
     ) % 360;
 }
 
-const km = distance(clat, clon, slat, slon);
-const brg = bearing(clat, clon, slat, slon);
+
+// =========================
+// CALCULATE
+// =========================
+
+const km =
+    distance(clat, clon, slat, slon);
+
+const brg =
+    bearing(clat, clon, slat, slon);
+
+
+// =========================
+// DISPLAY INFO
+// =========================
 
 document.getElementById("distance").innerHTML =
     "Distance: " + km.toFixed(3) + " km";
