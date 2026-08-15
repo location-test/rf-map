@@ -1,9 +1,135 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>RF Map Test</title>
+<meta charset="utf-8">
+<title>RF Map</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+#map {
+    height: 100vh;
+}
+
+.info {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+</style>
 </head>
+
 <body>
-<h1>TEST BERHASIL</h1>
+
+<div class="info">
+    <div><b>CPE → Site</b></div>
+    <div id="distance"></div>
+    <div id="bearing"></div>
+</div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+
+const p = new URLSearchParams(window.location.search);
+
+const clat = parseFloat(p.get("clat") || -7.0489684);
+const clon = parseFloat(p.get("clon") || 110.42617);
+
+const slat = parseFloat(p.get("slat") || -7.05159);
+const slon = parseFloat(p.get("slon") || 110.42708);
+
+const cpe = [clat, clon];
+const site = [slat, slon];
+
+const map = L.map('map');
+
+L.tileLayer(
+    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {
+        maxZoom: 19
+    }
+).addTo(map);
+
+L.marker(cpe)
+    .addTo(map)
+    .bindPopup('CPE');
+
+L.marker(site)
+    .addTo(map)
+    .bindPopup('SITE');
+
+L.polyline(
+    [cpe, site],
+    {
+        color: 'red',
+        weight: 3
+    }
+).addTo(map);
+
+map.fitBounds([cpe, site]);
+
+function distance(lat1, lon1, lat2, lon2) {
+
+    const R = 6371;
+
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+
+    const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(lat1 * Math.PI / 180) *
+        Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) ** 2;
+
+    return R * 2 * Math.atan2(
+        Math.sqrt(a),
+        Math.sqrt(1 - a)
+    );
+}
+
+function bearing(lat1, lon1, lat2, lon2) {
+
+    const y =
+        Math.sin((lon2 - lon1) * Math.PI / 180) *
+        Math.cos(lat2 * Math.PI / 180);
+
+    const x =
+        Math.cos(lat1 * Math.PI / 180) *
+        Math.sin(lat2 * Math.PI / 180)
+        -
+        Math.sin(lat1 * Math.PI / 180) *
+        Math.cos(lat2 * Math.PI / 180) *
+        Math.cos((lon2 - lon1) * Math.PI / 180);
+
+    return (
+        Math.atan2(y, x) * 180 / Math.PI + 360
+    ) % 360;
+}
+
+const km = distance(clat, clon, slat, slon);
+const brg = bearing(clat, clon, slat, slon);
+
+document.getElementById("distance").innerHTML =
+    "Distance: " + km.toFixed(3) + " km";
+
+document.getElementById("bearing").innerHTML =
+    "Bearing: " + brg.toFixed(1) + "°";
+
+</script>
+
 </body>
 </html>
